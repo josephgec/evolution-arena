@@ -12,3 +12,6 @@ Running 20 experiments
 
 **Next experiment ideas:** Fix the broken angle blending in steering logic (linear interpolation of angles wraps incorrectly), or reduce exploration_bias when food is visible.
 2026-04-07T20:29:35 | score=47.0 | baseline=36.8 | KEPT
+Best so far: 47.0
+
+━━━ Experiment 2/20 ━━━

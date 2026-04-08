@@ -92,18 +92,20 @@ def run_game(config, seed=42):
         # Base: wander
         target_heading = heading + random.gauss(0, 0.3) * (exploration_bias / 5.0)
 
-        # Blend toward food
+        # Blend toward food (using angular difference to handle wrapping)
         if nearest_food is not None:
             food_angle = math.atan2(nearest_food["y"] - cy, nearest_food["x"] - cx)
             weight = food_attraction / 10.0
-            target_heading = target_heading * (1 - weight) + food_angle * weight
+            diff = math.atan2(math.sin(food_angle - target_heading), math.cos(food_angle - target_heading))
+            target_heading += weight * diff
 
-        # Blend away from hazard
+        # Blend away from hazard (using angular difference to handle wrapping)
         if nearest_hazard is not None:
             hazard_angle = math.atan2(nearest_hazard["y"] - cy, nearest_hazard["x"] - cx)
             away_angle = hazard_angle + math.pi  # opposite direction
             weight = hazard_avoidance / 10.0
-            target_heading = target_heading * (1 - weight) + away_angle * weight
+            diff = math.atan2(math.sin(away_angle - target_heading), math.cos(away_angle - target_heading))
+            target_heading += weight * diff
 
         # Clamp angular change by turn_rate (in degrees, convert to radians)
         turn_rate_rad = math.radians(turn_rate)
