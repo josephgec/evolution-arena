@@ -33,3 +33,10 @@ Seeds 42 and 789 are the weakest — potential targets for further optimization.
 Best so far: 66.0
 
 ━━━ Experiment 3/20 ━━━
+**Score: 66.0 → 88.0 (KEPT, +22.0)**
+
+Wall avoidance worked well — the creature now steers away from walls instead of bouncing chaotically, keeping it in the food-rich interior. Seeds 42, 123, and 1024 all improved substantially. Seeds 456 and 789 are still at 40-50, suggesting there's room to improve on those layouts next.
+2026-04-07T20:33:14 | score=88.0 | baseline=88.0 | REVERTED
+Best so far: 88.0
+
+━━━ Experiment 4/20 ━━━

@@ -25,3 +25,147 @@ improvement to game.py steering logic.
 Changes: game.py — add wall avoidance steering force before turn rate clamping.
 Baseline: 66.0
 2026-04-07T20:33:03 | score=88.0 | baseline=66.0 | KEPT
+2026-04-07T20:33:14 | score=88.0 | baseline=88.0 | REVERTED
+
+--- Experiment 4 ---
+Hypothesis: The creature adds exploration noise (gauss(0, 0.18)) even when food is visible,
+making the pursuit path wobbly. When food is in sight, the creature should steer directly
+toward it with minimal noise. Exploration noise should only be used when no food is visible.
+This should make food collection faster and more efficient.
+Changes: game.py — conditional exploration: suppress noise when nearest_food is visible.
+Baseline: 88.0
+2026-04-07T20:38:00 | score=82.0 | baseline=88.0 | REVERTED
+
+--- Experiment 5 ---
+Hypothesis: Higher speed means more ground covered in 600 ticks, leading to more food
+found and collected. Current speed=2.5 covers ~1500px of path. Speed=3.0 would cover
+~1800px (+20%). With wall avoidance and angular steering already in place, the creature
+should handle the faster speed without losing control.
+Changes: config.json — speed 2.5→3.0
+Baseline: 88.0
+2026-04-07T20:38:34 | score=71.0 | baseline=88.0 | REVERTED
+
+--- Experiment 6 ---
+Hypothesis: The creature targets the nearest food regardless of whether hazards block the
+path. This causes it to charge through hazards, taking damage. By penalizing food targets
+that have hazards between the creature and the food, the creature will prefer safer routes,
+reducing damage while maintaining food collection.
+Changes: game.py — hazard-aware food selection: penalize food with hazards in the path.
+Baseline: 88.0
+2026-04-07T20:39:40 | score=88.0 | baseline=88.0 | REVERTED
+
+--- Experiment 7 ---
+Hypothesis: Debug reveals ZERO damage across ALL seeds — the creature is too cautious.
+Seed 789 always sees food (0 blind ticks) but only collects 4/12 because food is near
+hazards and the creature steers away too aggressively. Since food=10pts and each hazard
+tick costs only 1pt, the creature should be braver. Reducing hazard_avoidance from 4.0
+to 2.0 should let it grab food near hazards at a small damage cost, for a net score gain.
+Changes: config.json — hazard_avoidance 4.0→2.0
+Baseline: 88.0
+2026-04-07T20:42:37 | score=26.0 | baseline=88.0 | REVERTED
+
+--- Experiment 8 ---
+Hypothesis: Global hazard_avoidance reduction failed (26.0) because creature gets trapped.
+Better approach: keep full avoidance normally, but reduce it by 70% when food is within 30px.
+This lets the creature dash for food near hazards, grab it, then resume full avoidance to
+escape. Once food is collected, the reduced avoidance ends and the creature leaves the zone.
+Changes: game.py — adaptive hazard avoidance: reduce weight when nearest_food_dist < 30.
+Baseline: 88.0
+2026-04-07T20:43:46 | score=75.2 | baseline=88.0 | REVERTED
+
+--- Experiment 9 ---
+Hypothesis: Seed 456 spends 40% of time blind (no food visible). Increasing vision_range
+from 120 to 150 would increase visible area by ~56%, helping the creature find food sooner.
+The earlier failure at 200 was with broken steering code. With current improvements
+(angular fix, wall avoidance), a moderate increase should work. Note: hazard_vision will
+also increase (0.8*150=120 vs current 96), which may increase cautiousness.
+Changes: config.json — vision_range 120→150
+Baseline: 88.0
+2026-04-07T20:44:49 | score=76.2 | baseline=88.0 | REVERTED
+
+--- Experiment 10 ---
+Hypothesis: Increasing vision_range also increased hazard_vision (0.8x), making the creature
+too cautious. Fix: reduce hazard detection multiplier from 0.8 to 0.5, shrinking hazard_vision
+from 96 to 60. The creature still has ~35px of steering room (14 ticks, 84 degrees of turn)
+before entering a hazard (avg radius 25px). This lets the creature approach food near hazards
+without triggering avoidance prematurely. Currently takes ZERO damage, so some reduction
+in caution is safe.
+Changes: game.py — hazard_vision multiplier 0.8→0.5
+Baseline: 88.0
+2026-04-07T20:45:29 | score=56.2 | baseline=88.0 | REVERTED
+
+--- Experiment 11 ---
+Hypothesis: Seed 789 has 0 blind ticks but only 4 food — the creature is stuck oscillating
+near hazard-blocked food, spending hundreds of ticks on unreachable targets. Adding a
+frustration timeout (60 ticks chasing same food without collecting → give up and skip it)
+should break this deadlock and let the creature find reachable food instead.
+Changes: game.py — add frustration tracking; skip food that's been targeted >60 ticks.
+Baseline: 88.0
+2026-04-07T20:47:05 | score=88.0 | baseline=88.0 | REVERTED
+
+--- Experiment 12 ---
+Hypothesis: Current hazard avoidance steers 180° away, wasting ticks reversing direction.
+Tangential (perpendicular) avoidance would let the creature slide past hazards while
+maintaining forward progress. The creature picks the perpendicular direction closest to its
+current heading, flowing around hazards rather than fleeing. This saves ~30 ticks per
+hazard encounter that currently go to reversing and re-approaching.
+Changes: game.py — change hazard avoidance from directly-away to perpendicular/tangential.
+Baseline: 88.0
+2026-04-07T20:48:15 | score=60.2 | baseline=88.0 | REVERTED
+
+--- Experiment 13 ---
+Hypothesis: food_attraction=5.0 (weight=0.5) means the creature only turns 50% of the
+angular difference toward food each tick. Increasing to 7.0 (weight=0.7) makes the creature
+more decisive about homing in on food, reaching it faster. The prior failure at 8.0 was
+with broken angular steering AND turn_rate=8.0. Now with fixed steering and wall avoidance,
+stronger food attraction should be safe.
+Changes: config.json — food_attraction 5.0→7.0
+Baseline: 88.0
+2026-04-07T20:49:00 | score=36.8 | baseline=88.0 | REVERTED
+
+--- Experiment 14 ---
+Hypothesis: exploration_bias=3.0 adds gauss(0,0.18) noise to heading every tick, even when
+navigating. This noise makes paths less efficient and may cause the creature to drift off
+course when approaching food. Reducing to 1.0 (noise gauss(0,0.06)) should produce
+smoother, more predictable paths while still allowing some exploration when blind.
+Changes: config.json — exploration_bias 3.0→1.0
+Baseline: 88.0
+2026-04-07T20:49:51 | score=69.2 | baseline=88.0 | REVERTED
+
+--- Experiment 15 ---
+Hypothesis: vision_range=150 failed (76.2) because hazard_vision increased too (0.8*150=120).
+Fix: increase vision_range to 150 for food but fix hazard_vision at 96 (current effective
+value). This gives 25% more food detection without increased cautiousness. Two changes but
+one conceptual idea: decouple food and hazard vision ranges.
+Changes: config.json — vision_range 120→150; game.py — hazard_vision fixed at 96.
+Baseline: 88.0
+2026-04-07T20:50:35 | score=60.0 | baseline=88.0 | REVERTED
+
+--- Experiment 16 ---
+Hypothesis: Current code avoids only the nearest hazard. On seed 789 with clustered hazards,
+the creature may be steered around one hazard into another. Aggregate avoidance of ALL
+visible hazards (weighted by inverse distance) should find better escape routes, producing
+smoother navigation through multi-hazard areas.
+Changes: game.py — replace single nearest-hazard avoidance with aggregate all-hazard avoidance.
+Baseline: 88.0
+2026-04-07T20:52:44 | score=56.8 | baseline=88.0 | REVERTED
+
+--- Experiment 17 ---
+Hypothesis: Turn_rate=6.0 was optimized in experiment 1 BEFORE the angular fix (exp 2) and
+wall avoidance (exp 3). Those improvements make the creature more stable, so it may now
+handle faster turning (7.0) without overshooting. Faster turning = quicker response to food
+and hazards = more efficient navigation.
+Changes: config.json — turn_rate 6.0→7.0
+Baseline: 88.0
+2026-04-07T20:54:05 | score=66.0 | baseline=88.0 | REVERTED
+
+--- Experiment 18 ---
+Hypothesis: On seed 789, the creature spends 247 ticks continuously seeing food (near
+hazards) without collecting any — it orbits the hazard cluster endlessly. A "starvation
+escape" detects when the creature has been seeing food for 80+ ticks without collecting
+and temporarily ignores food attraction, forcing exploration to find reachable food elsewhere.
+Only triggers when seeing-but-not-collecting, so normal exploration gaps don't trigger it.
+Tested: threshold=70-85 all give avg=90.0, improving seed 789 (40→50) without hurting others.
+Changes: game.py — add seeing_not_collecting counter; ignore food when counter > 80.
+Baseline: 88.0
+2026-04-07T21:00:53 | score=90.0 | baseline=88.0 | KEPT

@@ -52,6 +52,7 @@ def run_game(config, seed=42):
     food_collected = 0
     total_damage = 0.0
     eaten_food = []  # (index, tick_eaten) for respawn tracking
+    seeing_not_collecting = 0  # ticks seeing food without collecting
 
     for tick in range(TICKS):
         # --- Food respawn every 120 ticks ---
@@ -66,15 +67,22 @@ def run_game(config, seed=42):
         # --- Find nearest visible food ---
         nearest_food = None
         nearest_food_dist = float("inf")
+        any_food_visible = False
         for f in food:
             if not f["alive"]:
                 continue
             dx = f["x"] - cx
             dy = f["y"] - cy
             dist = math.sqrt(dx * dx + dy * dy)
-            if dist < vision_range and dist < nearest_food_dist:
-                nearest_food = f
-                nearest_food_dist = dist
+            if dist < vision_range:
+                any_food_visible = True
+                if dist < nearest_food_dist:
+                    nearest_food = f
+                    nearest_food_dist = dist
+
+        # Starvation escape: ignore food when seeing but not collecting for too long
+        if seeing_not_collecting > 80:
+            nearest_food = None
 
         # --- Find nearest visible hazard (vision_range * 0.8) ---
         nearest_hazard = None
@@ -157,6 +165,7 @@ def run_game(config, seed=42):
         cy = max(0, min(HEIGHT, cy))
 
         # --- Collect food (radius 14) ---
+        collected_this_tick = False
         for i, f in enumerate(food):
             if not f["alive"]:
                 continue
@@ -167,6 +176,15 @@ def run_game(config, seed=42):
                 f["alive"] = False
                 food_collected += 1
                 eaten_food.append((i, tick))
+                collected_this_tick = True
+
+        # Update starvation counter
+        if collected_this_tick:
+            seeing_not_collecting = 0
+        elif any_food_visible:
+            seeing_not_collecting += 1
+        else:
+            seeing_not_collecting = 0
 
         # --- Hazard damage ---
         for h in hazards:
