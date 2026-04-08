@@ -15,3 +15,21 @@ Running 20 experiments
 Best so far: 47.0
 
 ━━━ Experiment 2/20 ━━━
+**Experiment 2 result: 66.0 (KEPT)**
+
+The angle blending fix improved the score from 47.0 → 66.0 (+40%). The bug was causing the creature to sometimes steer in completely the wrong direction when angles wrapped around ±π. With proper angular interpolation via `atan2(sin, cos)`, the creature now consistently steers toward food and away from hazards correctly.
+
+**Per-seed breakdown:**
+| Seed | Score |
+|------|-------|
+| 42 | 40.0 |
+| 123 | 80.0 |
+| 456 | 50.0 |
+| 789 | 40.0 |
+| 1024 | 120.0 |
+
+Seeds 42 and 789 are the weakest — potential targets for further optimization. Next experiments could explore increasing `food_attraction` (now that steering works correctly, the creature can handle being more aggressive) or adding wall-avoidance behavior to prevent getting stuck in corners.
+2026-04-07T20:31:06 | score=66.0 | baseline=66.0 | REVERTED
+Best so far: 66.0
+
+━━━ Experiment 3/20 ━━━

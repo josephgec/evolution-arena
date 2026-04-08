@@ -107,6 +107,25 @@ def run_game(config, seed=42):
             diff = math.atan2(math.sin(away_angle - target_heading), math.cos(away_angle - target_heading))
             target_heading += weight * diff
 
+        # --- Wall avoidance ---
+        wall_margin = 40
+        wall_dx = 0.0
+        wall_dy = 0.0
+        if cx < wall_margin:
+            wall_dx += (wall_margin - cx) / wall_margin
+        if cx > WIDTH - wall_margin:
+            wall_dx -= (cx - (WIDTH - wall_margin)) / wall_margin
+        if cy < wall_margin:
+            wall_dy += (wall_margin - cy) / wall_margin
+        if cy > HEIGHT - wall_margin:
+            wall_dy -= (cy - (HEIGHT - wall_margin)) / wall_margin
+
+        if wall_dx != 0 or wall_dy != 0:
+            wall_angle = math.atan2(wall_dy, wall_dx)
+            wall_weight = min(1.0, math.sqrt(wall_dx**2 + wall_dy**2)) * 0.6
+            diff = math.atan2(math.sin(wall_angle - target_heading), math.cos(wall_angle - target_heading))
+            target_heading += wall_weight * diff
+
         # Clamp angular change by turn_rate (in degrees, convert to radians)
         turn_rate_rad = math.radians(turn_rate)
         delta = target_heading - heading

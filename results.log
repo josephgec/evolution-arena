@@ -14,3 +14,14 @@ collection by eliminating wrong-way steering.
 Changes: game.py steering logic — replace linear angle blending with proper angular interpolation.
 Baseline: 47.0
 2026-04-07T20:30:56 | score=66.0 | baseline=47.0 | KEPT
+2026-04-07T20:31:06 | score=66.0 | baseline=66.0 | REVERTED
+
+--- Experiment 3 ---
+Hypothesis: Wall bouncing creates chaotic heading changes that waste movement. When the
+creature hits a wall, its heading reflects abruptly, often away from food. Adding gentle
+wall-avoidance steering when within 40px of walls should keep the creature navigating
+smoothly in the food-rich interior and avoid wasted bounces. This is a code-level
+improvement to game.py steering logic.
+Changes: game.py — add wall avoidance steering force before turn rate clamping.
+Baseline: 66.0
+2026-04-07T20:33:03 | score=88.0 | baseline=66.0 | KEPT
