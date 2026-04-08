@@ -1,0 +1,14 @@
+=== EVOLUTION ARENA AUTORESEARCH ===
+Running 20 experiments
+
+
+━━━ Experiment 1/20 ━━━
+**Experiment 1 summary:**
+
+- **Change:** `turn_rate` 4.0 → 6.0 (single parameter change)
+- **Result:** 36.8 → **47.0** (+10.2, +27.7% improvement)
+- **Why it works:** The creature was too sluggish to respond to food/hazards. At 4°/tick it took 45 ticks to turn 180°. At 6°/tick it takes 30 ticks — much better responsiveness without the jitteriness seen at 7-8°/tick.
+- **What I learned:** High food_attraction overwhelms hazard_avoidance (don't go above 5.0 without compensating). Higher vision_range actually hurt, likely because the creature locks onto distant food and ignores closer opportunities. The sweet spot for turn_rate is 6.0.
+
+**Next experiment ideas:** Fix the broken angle blending in steering logic (linear interpolation of angles wraps incorrectly), or reduce exploration_bias when food is visible.
+2026-04-07T20:29:35 | score=47.0 | baseline=36.8 | KEPT

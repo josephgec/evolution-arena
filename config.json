@@ -1,6 +1,6 @@
 {
   "speed": 2.5,
-  "turn_rate": 4.0,
+  "turn_rate": 6.0,
   "vision_range": 120,
   "food_attraction": 5.0,
   "hazard_avoidance": 4.0,
