@@ -1,5 +1,7 @@
 # Evolution Arena
 
+> **Writeup:** [Evolution Arena: a game-based autoresearch testbed](https://jthomas.site/blog/evolution-arena.html)
+
 A game-based autoresearch testbed implementing [Karpathy's autoresearch pattern](https://github.com/karpathy/autoresearch). An AI agent (Claude Code) iteratively optimizes a game creature's behavior parameters and steering logic to maximize score.
 
 ## How it works
